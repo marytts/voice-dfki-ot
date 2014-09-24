@@ -1,0 +1,18 @@
+apply plugin: 'marytts-voicebuilding'
+
+group "de.dfki.mary"
+
+voice {
+    name 'dfki-ot-hsmm'
+    language 'tr'
+    gender 'male'
+    type 'hsmm'
+    description 'A male Turkish hidden semi-Markov model voice'
+    samplingRate 16000
+}
+
+license {
+    name 'Creative Commons Attribution-NoDerivs 3.0 Unported'
+    shortName 'CC-BY-ND'
+    url 'http://creativecommons.org/licenses/by-nd/3.0/'
+}
