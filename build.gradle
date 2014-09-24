@@ -3,11 +3,11 @@ apply plugin: 'marytts-voicebuilding'
 group "de.dfki.mary"
 
 voice {
-    name 'dfki-ot-hsmm'
+    name 'dfki-ot'
     language 'tr'
     gender 'male'
-    type 'hsmm'
-    description 'A male Turkish hidden semi-Markov model voice'
+    type 'unit selection'
+    description 'A male Turkish unit selection voice'
     samplingRate 16000
 }
 
