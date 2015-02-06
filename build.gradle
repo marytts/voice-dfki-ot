@@ -2,12 +2,3 @@ apply plugin: 'de.dfki.mary.voicebuilding'
 
 group 'de.dfki.mary'
 version '5.1.2'
-
-voice {
-    name 'dfki-ot'
-    language 'tr'
-    gender 'male'
-    type 'unit selection'
-    description 'A male Turkish unit selection voice'
-    samplingRate 16000
-}
