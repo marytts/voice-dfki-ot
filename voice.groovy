@@ -1,6 +1,8 @@
 voice {
     name = 'dfki-ot'
-    language = 'tr'
+    locale {
+        language = 'tr'
+    }
     gender = 'male'
     type = 'unit selection'
     description = 'A male Turkish unit selection voice'
