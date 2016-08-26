@@ -1,5 +1,6 @@
 plugins {
     id 'de.dfki.mary.voicebuilding-legacy' version '5.2.0'
+    id 'de.undercouch.download' version '3.1.1'
 }
 
 group 'de.dfki.mary'
@@ -17,4 +18,25 @@ voice {
         url = 'http://mary.dfki.de/download/by-nd-3.0.html'
     }
     samplingRate = 16000
+}
+
+ext {
+    flacFile = file("$buildDir/dfki-ot-data.flac")
+    yamlFile = file("$buildDir/dfki-ot-data.yaml")
+}
+
+import de.undercouch.gradle.tasks.download.Download
+
+task downloadAudio(type: Download) {
+    src "https://github.com/marytts/dfki-ot-data/releases/download/v0.1/$flacFile.name"
+    dest flacFile
+    overwrite false
+    acceptAnyCertificate true
+}
+
+task downloadData(type: Download) {
+    src "https://github.com/marytts/dfki-ot-data/releases/download/v0.1/$yamlFile.name"
+    dest yamlFile
+    overwrite false
+    acceptAnyCertificate true
 }
