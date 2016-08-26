@@ -117,4 +117,47 @@ task extractWav {
 
 legacyInit {
     dependsOn extractLab, extractText, extractWav
+    def basenameListFile = file("$buildDir/basenames.lst")
+    outputs.files basenameListFile
+    doLast {
+        basenameListFile.withWriter { basenameList ->
+            fileTree(wav.destDir).collect {
+                it.name - '.wav'
+            }.minus([
+                    'ot0044',
+                    'ot0100',
+                    'ot0103',
+                    'ot0256',
+                    'ot0282',
+                    'ot0291',
+                    'ot0307',
+                    'ot0323',
+                    'ot0370',
+                    'ot0453',
+                    'ot0497',
+                    'ot0538',
+                    'ot0569',
+                    'ot0600',
+                    'ot0662',
+                    'ot0673',
+                    'ot0745',
+                    'ot0746',
+                    'ot0774',
+                    'ot0791',
+                    'ot0818',
+                    'ot0853',
+                    'ot0882',
+                    'ot0883',
+                    'ot0893',
+                    'ot0918',
+                    'ot0944',
+                    'ot1073',
+                    'ot1106',
+                    'ot1132',
+                    'ot1159'
+            ]).each {
+                basenameList.writeLine it
+            }
+        }
+    }
 }
