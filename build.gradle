@@ -74,3 +74,22 @@ task extractLab {
         }
     }
 }
+
+task extractText {
+    dependsOn downloadData
+    def destDir = file("$buildDir/text")
+    inputs.file yamlFile
+    outputs.dir destDir
+    doFirst {
+        destDir.mkdirs()
+    }
+    doLast {
+        new Yaml().load(yamlFile.newReader()).each { utterance ->
+            if (utterance.segments) {
+                file("$destDir/${utterance.prompt}.txt").withWriter { writer ->
+                    writer.println utterance.text
+                }
+            }
+        }
+    }
+}
