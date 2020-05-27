@@ -1,7 +1,7 @@
 voice-dfki-ot
 =============
 
-A male Turkish unit selection voice
+A male Turkish unit selection voice for [MaryTTS], built from the [dfki-ot-data]
 
 Prerequisites
 -------------
@@ -24,24 +24,26 @@ accordingly.
 Building the voice
 ------------------
 
-To assemble, test, and package the voice for another MaryTTS installation, do
+To assemble, test, and package the voice for a [MaryTTS] installation, do
 
     ./gradlew build
 
 The packaged files will be placed under `build/distributions`.
-Copy the zip file and xml descriptor into your MaryTTS installation's `download` directory, then run the `marytts-component-installer` to install the voice.
+Copy the zip file and XML descriptor into your MaryTTS installation's `download` directory, then run the `marytts-component-installer` to install the voice.
 
 Running the voice
 -----------------
 
-To build the voice and run it in an ad-hoc MaryTTS server, do
+To build the voice and run it in an ad-hoc [MaryTTS] server, do
 
     ./gradlew run
 
 Then, go to <http://localhost:59125>.
 
+[dfki-ot-data]: https://github.com/marytts/dfki-ot-data
 [Edinburgh Speech Tools]: http://www.cstr.ed.ac.uk/projects/speech_tools/
-[Homebrew]: http://brew.sh/
+[Homebrew]: https://brew.sh/
 [Java]: https://www.java.com/
+[MaryTTS]: http://mary.dfki.de/
 [Praat]: http://praat.org/
 [SoX]: http://sox.sourceforge.net/
