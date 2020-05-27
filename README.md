@@ -19,13 +19,6 @@ $ sudo apt-get install default-jdk praat sox speech-tools
 ```
 accordingly.
 
-### Initializing the build
-
-Do
-```
-$ ./gradlew legacyInit
-```
-
 ### Building the voice
 
 To assemble, test, and package the voice for another MaryTTS installation, do
