@@ -1,6 +1,15 @@
+buildscript {
+    repositories {
+        jcenter()
+    }
+    dependencies {
+        classpath group: 'org.yaml', name: 'snakeyaml', version: '1.17'
+    }
+}
+
 plugins {
-    id 'org.m2ci.msp.flaml' version '0.3.0'
-    id 'de.dfki.mary.voicebuilding-legacy' version '5.4'
+    id 'de.dfki.mary.voicebuilding-legacy' version '5.5-SNAPSHOT'
+    id 'de.undercouch.download' version '3.1.0'
 }
 
 group 'de.dfki.mary'
@@ -8,116 +17,122 @@ version '5.3-SNAPSHOT'
 
 marytts {
     voice {
-        name = 'dfki-ot'
-        language = 'tr'
-        gender = 'male'
-        type = 'unit selection'
-        description = 'A male Turkish unit selection voice'
-        license {
-            name = 'Creative Commons Attribution-NoDerivs 3.0 Unported'
-            shortName = 'CC-BY-ND'
-            url = 'http://mary.dfki.de/download/by-nd-3.0.html'
-        }
-        samplingRate = 16000
+    name = 'dfki-ot'
+    language = 'tr'
+    gender = 'male'
+    type = 'unit selection'
+    description = 'A male Turkish unit selection voice'
+    license {
+        name = 'Creative Commons Attribution-NoDerivs 3.0 Unported'
+        shortName = 'CC-BY-ND'
+        url = 'http://mary.dfki.de/download/by-nd-3.0.html'
     }
+    samplingRate = 16000
+}
 }
 
-repositories {
-    ivy {
-        url 'https://github.com/marytts'
-        layout 'pattern', {
-            ivy '[module]/releases/download/v[revision]/ivy-[revision].xml'
-            artifact '[module]/releases/download/v[revision]/[module]-[revision].[ext]'
-        }
-    }
-}
-
-dependencies {
-    data group: 'de.dfki.mary', name: 'dfki-ot-data', version: '0.2-rc1'
-}
-
-task unpackData(type: CopyFlamlFiles) {
-    yamlFile = file("$buildDir/dfki-ot-data.yaml")
+ext {
     flacFile = file("$buildDir/dfki-ot-data.flac")
+    yamlFile = file("$buildDir/dfki-ot-data.yaml")
 }
 
-extractWavFiles {
-    flacFile = unpackData.flacFile
-    yamlFile = unpackData.yamlFile
-    destDir = layout.buildDirectory.dir('wav_orig')
+import de.undercouch.gradle.tasks.download.Download
+import org.yaml.snakeyaml.Yaml
+
+task downloadAudio(type: Download) {
+    src "https://github.com/marytts/dfki-ot-data/releases/download/v0.1/$flacFile.name"
+    dest flacFile
+    overwrite false
+    acceptAnyCertificate true
 }
 
-extractTextFiles {
-    yamlFile = unpackData.yamlFile
+task downloadData(type: Download) {
+    src "https://github.com/marytts/dfki-ot-data/releases/download/v0.1/$yamlFile.name"
+    dest yamlFile
+    overwrite false
+    acceptAnyCertificate true
 }
 
-extractLabFiles {
-    yamlFile = unpackData.yamlFile
+task extractLab {
+    dependsOn downloadData
+    ext.destDir = file("$buildDir/lab")
+    inputs.file yamlFile
+    outputs.dir destDir
+    doFirst {
+        destDir.mkdirs()
+    }
+    doLast {
+        new Yaml().load(yamlFile.newReader()).each { utterance ->
+            if (utterance.segments) {
+                file("$destDir/${utterance.prompt}.lab").withWriter { writer ->
+                    writer.println '#'
+                    def end = 0.0
+                    utterance.segments.each { segment ->
+                        end += segment.dur
+                        writer.println "${end.round(6)} 125 $segment.lab"
+                    }
+                }
+            }
+        }
+    }
 }
 
-wav {
-    srcDir = extractWavFiles.destDir
+task extractText {
+    dependsOn downloadData
+    ext.destDir = file("$buildDir/text")
+    inputs.file yamlFile
+    outputs.dir destDir
+    doFirst {
+        destDir.mkdirs()
+    }
+    doLast {
+        new Yaml().load(yamlFile.newReader()).each { utterance ->
+            if (utterance.segments) {
+                file("$destDir/${utterance.prompt}.txt").withWriter { writer ->
+                    writer.println utterance.text
+                }
+            }
+        }
+    }
+}
+
+task extractWav {
+    dependsOn downloadData, downloadAudio
+    ext.destDir = file("$buildDir/wav")
+    inputs.files yamlFile, flacFile
+    outputs.dir destDir
+    doFirst {
+        destDir.mkdirs()
+    }
+    doLast {
+        new Yaml().load(yamlFile.newReader()).each { utterance ->
+            if (utterance.segments) {
+                exec {
+                    commandLine 'sox', flacFile, "$destDir/${utterance.prompt}.wav",
+                            'trim', utterance.start, "=$utterance.end",
+                            'rate', marytts.voice.samplingRate
+                }
+            }
+        }
+    }
 }
 
 basenames {
-    textDir = extractTextFiles.destDir
-    labDir = extractLabFiles.destDir
-    exclude 'ot0044',
-            'ot0100',
-            'ot0103',
-            'ot0256',
-            'ot0282',
-            'ot0291',
-            'ot0307',
-            'ot0323',
-            'ot0370',
-            'ot0453',
-            'ot0497',
-            'ot0538',
-            'ot0569',
-            'ot0600',
-            'ot0662',
-            'ot0673',
-            'ot0745',
-            'ot0746',
-            'ot0774',
-            'ot0791',
-            'ot0818',
-            'ot0853',
-            'ot0882',
-            'ot0883',
-            'ot0893',
-            'ot0918',
-            'ot0944',
-            'ot1073',
-            'ot1106',
-            'ot1132',
-            'ot1159'
+    dependsOn "extractWav", "extractText", "extractLab"
+    wavDir = extractWav.destDir
+    textDir = extractText.destDir
+    labDir = extractLab.destDir
+    include '*'
+    exclude "w0158"
 }
 
-class CopyFlamlFiles extends DefaultTask {
-
-    @OutputFile
-    final RegularFileProperty yamlFile = newOutputFile()
-
-    @OutputFile
-    final RegularFileProperty flacFile = newOutputFile()
-
-    @TaskAction
-    void copy() {
-        project.copy {
-            from project.files(project.configurations.data)
-            into project.buildDir
-            filesMatching '*.zip', { details ->
-                project.copy {
-                    from project.zipTree(details.file)
-                    into project.buildDir
-                }
-                details.exclude()
-            }
-            filesMatching '*.flac', {
-                it.name = flacFile.get().asFile.name
-            }
-        }
+/*
+generateVoiceConfig {
+    afterEvaluate {
+        config << [
+                targetCostWeights: "jar:/marytts/voice/$voice.nameCamelCase/customTargetCostWeights.txt",
+                joinCostWeights  : "jar:/marytts/voice/$voice.nameCamelCase/customJoinCostWeights.txt",
+        ]
     }
 }
+*/
